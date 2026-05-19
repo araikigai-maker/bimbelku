@@ -118,11 +118,7 @@ export default function LoginPage() {
             Masuk dengan Google
           </a>
 
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-700 mb-2">Demo Login:</p>
-            <p className="text-sm text-gray-600">Email: admin@bimbel.com</p>
-            <p className="text-sm text-gray-600">Password: password123</p>
-          </div>
+
         </div>
       </div>
     </div>

@@ -18,12 +18,13 @@ async function main() {
   await prisma.course.deleteMany();
   await prisma.user.deleteMany();
 
-  const hashedPassword = await bcrypt.hash("password123", 12);
+  const adminHashedPassword = await bcrypt.hash("Sukahaji27@", 12);
+  const studentHashedPassword = await bcrypt.hash("password123", 12);
 
   await prisma.user.createMany({
     data: [
-      { name: "Admin Bimbel", email: "admin@bimbel.com", password: hashedPassword, role: "ADMIN" },
-      { name: "Ahmad Siswa", email: "ahmad@siswa.com", password: hashedPassword, role: "STUDENT" },
+      { name: "Admin Bimbel", email: "admin@bimbel.com", password: adminHashedPassword, role: "ADMIN" },
+      { name: "Ahmad Siswa", email: "ahmad@siswa.com", password: studentHashedPassword, role: "STUDENT" },
     ],
   });
 
