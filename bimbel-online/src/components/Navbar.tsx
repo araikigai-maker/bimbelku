@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { navItems } from "@/lib/constants";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (stored) setUser(JSON.parse(stored));
-  }, []);
+  }, [pathname]);
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
