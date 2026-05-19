@@ -39,12 +39,21 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <>
-                {user.role === "ADMIN" && (
-                  <Link href="/admin/overview" className="text-red-600 hover:text-red-800 font-medium">
+                {user.role === "ADMIN" ? (
+                  <Link href="/admin/overview" className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition">
                     Admin
                   </Link>
+                ) : (
+                  <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                    Siswa
+                  </span>
                 )}
-                <Link href="/dashboard" className="text-gray-600 hover:text-blue-600">
+                {user.role === "ADMIN" && (
+                  <Link href="/admin/overview" className="text-red-600 hover:text-red-800 font-medium text-sm">
+                    Admin Panel
+                  </Link>
+                )}
+                <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 font-medium">
                   {user.name}
                 </Link>
               </>
@@ -85,10 +94,12 @@ export default function Navbar() {
             ))}
             {user ? (
               <>
-                {user.role === "ADMIN" && (
+                {user.role === "ADMIN" ? (
                   <Link href="/admin/overview" className="block py-2 text-red-600 font-medium" onClick={() => setMobileOpen(false)}>
                     Panel Admin
                   </Link>
+                ) : (
+                  <div className="py-2 text-sm text-gray-500">Status: Siswa</div>
                 )}
                 <Link href="/dashboard" className="block py-2 text-blue-600 font-medium" onClick={() => setMobileOpen(false)}>
                   Dashboard ({user.name})
