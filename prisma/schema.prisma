@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("STUDENT")
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enrollments   Enrollment[]
+  tryoutResults TryoutResult[]
+  catSessions   CatSession[]
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  category    String
+  price       Int
+  image       String?
+  instructor  String
+  lessons     Int      @default(0)
+  students    Int      @default(0)
+  rating      Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  enrollments Enrollment[]
+  modules     Module[]
+}
+
+model Module {
+  id        String   @id @default(cuid())
+  title     String
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons   Lesson[]
+  order     Int      @default(0)
+}
+
+model Lesson {
+  id        String   @id @default(cuid())
+  title     String
+  moduleId  String
+  module    Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  content   String?
+  videoUrl  String?
+  order     Int      @default(0)
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, courseId])
+}
+
+model Tryout {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  category    String
+  duration    Int
+  questionCount Int
+  price       Int
+  image       String?
+  passingGrade Int     @default(0)
+  catAvailableFrom DateTime?
+  catAvailableUntil DateTime?
+  catPassingGradePoints Int @default(0) // Total points passing grade (e.g. 285 for SKD)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions  Question[]
+  results    TryoutResult[]
+  catSessions CatSession[]
+}
+
+model Question {
+  id         String   @id @default(cuid())
+  tryoutId   String
+  tryout     Tryout   @relation(fields: [tryoutId], references: [id], onDelete: Cascade)
+  question   String
+  optionA    String
+  optionB    String
+  optionC    String
+  optionD    String
+  optionE    String?
+  answer     String     @default("A")
+  optionPoints String   @default("{}") // For TKP questions: '{"A":5,"B":4,"C":3,"D":2,"E":1}' as JSON string
+  explanation String?
+  order      Int      @default(0)
+  questionType String   @default("regular") // regular or tkp
+  subtest      String?  // TWK, TIU, TKP (for CAT CPNS categorization)
+
+  catAnswers CatAnswer[]
+}
+
+model TryoutResult {
+  id           String   @id @default(cuid())
+  userId       String
+  tryoutId     String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tryout       Tryout   @relation(fields: [tryoutId], references: [id], onDelete: Cascade)
+  score        Int      // Percentage score (0-100)
+  correct      Int      // Number of questions with max/perfect score
+  wrong        Int      // Number wrong (regular) or not-perfect (TKP)
+  answered     Int
+  earnedPoints Int      @default(0) // Total points earned across all questions
+  maxPoints    Int      @default(0) // Maximum possible points
+  createdAt    DateTime @default(now())
+}
+
+model CatSession {
+  id               String   @id @default(cuid())
+  userId           String
+  tryoutId         String
+  token            String   @unique
+  startedAt        DateTime @default(now())
+  endedAt          DateTime?
+  status           String   @default("active") // active, submitted, timeout
+  remainingSeconds Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tryout   Tryout      @relation(fields: [tryoutId], references: [id], onDelete: Cascade)
+  answers  CatAnswer[]
+}
+
+model CatAnswer {
+  id         String   @id @default(cuid())
+  sessionId  String
+  questionId String
+  answer     String?  // null if unanswered
+  ragu       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  session  CatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, questionId])
+}
+
+model CatAccess {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  active    Boolean  @default(true)
+  grantedAt DateTime @default(now())
+}
