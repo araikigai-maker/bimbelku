@@ -24,6 +24,7 @@ function CallbackContent() {
     try {
       const json = JSON.parse(atob(decodeURIComponent(data)));
       localStorage.setItem("user", JSON.stringify(json));
+      window.dispatchEvent(new Event("user-updated"));
       router.push("/dashboard");
     } catch {
       router.push("/login?error=invalid_data");

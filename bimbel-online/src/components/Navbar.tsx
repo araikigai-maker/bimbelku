@@ -15,6 +15,15 @@ export default function Navbar() {
     if (stored) setUser(JSON.parse(stored));
   }, [pathname]);
 
+  useEffect(() => {
+    const handleUserUpdate = () => {
+      const stored = localStorage.getItem("user");
+      if (stored) setUser(JSON.parse(stored));
+    };
+    window.addEventListener("user-updated", handleUserUpdate);
+    return () => window.removeEventListener("user-updated", handleUserUpdate);
+  }, []);
+
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -36,22 +45,28 @@ export default function Navbar() {
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
             {user ? (
               <>
-                {user.role === "ADMIN" ? (
-                  <Link href="/admin/overview" className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition">
-                    Admin
-                  </Link>
-                ) : (
+                {user.role === "ADMIN" && (
+                  <>
+                    <Link href="/admin/overview" className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition">
+                      Admin
+                    </Link>
+                    <Link href="/admin/overview" className="text-red-600 hover:text-red-800 font-medium text-sm">
+                      Admin Panel
+                    </Link>
+                  </>
+                )}
+                {user.role === "INSTRUCTOR" && (
+                  <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+                    Instruktur
+                  </span>
+                )}
+                {user.role === "STUDENT" && (
                   <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
                     Siswa
                   </span>
-                )}
-                {user.role === "ADMIN" && (
-                  <Link href="/admin/overview" className="text-red-600 hover:text-red-800 font-medium text-sm">
-                    Admin Panel
-                  </Link>
                 )}
                 <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 font-medium">
                   {user.name}
@@ -94,12 +109,16 @@ export default function Navbar() {
             ))}
             {user ? (
               <>
-                {user.role === "ADMIN" ? (
+                {user.role === "ADMIN" && (
                   <Link href="/admin/overview" className="block py-2 text-red-600 font-medium" onClick={() => setMobileOpen(false)}>
                     Panel Admin
                   </Link>
-                ) : (
-                  <div className="py-2 text-sm text-gray-500">Status: Siswa</div>
+                )}
+                {user.role === "INSTRUCTOR" && (
+                  <div className="py-2 text-sm text-purple-600 font-medium">Status: Instruktur</div>
+                )}
+                {user.role === "STUDENT" && (
+                  <div className="py-2 text-sm text-blue-600 font-medium">Status: Siswa</div>
                 )}
                 <Link href="/dashboard" className="block py-2 text-blue-600 font-medium" onClick={() => setMobileOpen(false)}>
                   Dashboard ({user.name})
