@@ -6,29 +6,26 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Starting seed...");
 
-  await prisma.catAnswer.deleteMany();
-  await prisma.catSession.deleteMany();
-  await prisma.catAccess.deleteMany();
-  await prisma.tryoutResult.deleteMany();
-  await prisma.enrollment.deleteMany();
-  await prisma.lesson.deleteMany();
-  await prisma.module.deleteMany();
-  await prisma.question.deleteMany();
-  await prisma.tryout.deleteMany();
-  await prisma.course.deleteMany();
-  await prisma.user.deleteMany();
+  const passwords = {
+    admin: await bcrypt.hash("Sukahaji27@", 12),
+    student: await bcrypt.hash("password123", 12),
+    instructor: await bcrypt.hash("password123", 12),
+  };
 
-  const adminHashedPassword = await bcrypt.hash("Sukahaji27@", 12);
-  const studentHashedPassword = await bcrypt.hash("password123", 12);
-  const instructorHashedPassword = await bcrypt.hash("password123", 12);
+  const users = [
+    { name: "Admin Bimbel", email: "admin@bimbel.com", password: passwords.admin, role: "ADMIN" },
+    { name: "Ahmad Siswa", email: "ahmad@siswa.com", password: passwords.student, role: "STUDENT" },
+    { name: "Budi Guru", email: "budi@guru.com", password: passwords.instructor, role: "INSTRUCTOR" },
+  ];
 
-  await prisma.user.createMany({
-    data: [
-      { name: "Admin Bimbel", email: "admin@bimbel.com", password: adminHashedPassword, role: "ADMIN" },
-      { name: "Ahmad Siswa", email: "ahmad@siswa.com", password: studentHashedPassword, role: "STUDENT" },
-      { name: "Budi Guru", email: "budi@guru.com", password: instructorHashedPassword, role: "INSTRUCTOR" },
-    ],
-  });
+  for (const user of users) {
+    await prisma.user.upsert({
+      where: { email: user.email },
+      update: { name: user.name, role: user.role },
+      create: user,
+    });
+    console.log(`  User: ${user.email} (${user.role})`);
+  }
 
   await prisma.course.createMany({
     data: [
