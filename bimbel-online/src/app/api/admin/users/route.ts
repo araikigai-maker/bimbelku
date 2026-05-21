@@ -11,8 +11,8 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json({ users });
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }
 
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ user });
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }

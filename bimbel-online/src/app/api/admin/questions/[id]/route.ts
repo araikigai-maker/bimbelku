@@ -7,6 +7,11 @@ export async function PUT(
 ) {
   try {
     const d = await req.json();
+    
+    if (!d.question || !d.optionA || !d.optionB || !d.optionC || !d.optionD || !d.answer) {
+      return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
+    }
+
     const q = await prisma.question.update({
       where: { id: params.id },
       data: {
@@ -23,8 +28,8 @@ export async function PUT(
       },
     });
     return NextResponse.json({ question: q });
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }
 
@@ -42,7 +47,7 @@ export async function DELETE(
     }
     await prisma.question.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }

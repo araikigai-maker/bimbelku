@@ -97,7 +97,7 @@ model Question {
   id         String   @id @default(cuid())
   tryoutId   String
   tryout     Tryout   @relation(fields: [tryoutId], references: [id], onDelete: Cascade)
-  question   String
+  question   String   @db.Text
   optionA    String
   optionB    String
   optionC    String
@@ -105,7 +105,7 @@ model Question {
   optionE    String?
   answer     String     @default("A")
   optionPoints String   @default("{}") // For TKP questions: '{"A":5,"B":4,"C":3,"D":2,"E":1}' as JSON string
-  explanation String?
+  explanation String?   @db.Text
   order      Int      @default(0)
   questionType String   @default("regular") // regular or tkp
   subtest      String?  // TWK, TIU, TKP (for CAT CPNS categorization)

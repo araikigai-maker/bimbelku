@@ -79,23 +79,27 @@ export async function POST(
         optionPoints = JSON.stringify(pts);
       }
 
-      await prisma.question.create({
-        data: {
-          tryoutId,
-          question,
-          optionA,
-          optionB,
-          optionC,
-          optionD,
-          optionE,
-          answer,
-          explanation,
-          questionType: tipe === "tkp" ? "tkp" : "regular",
-          optionPoints,
-          order: maxOrder + success + 1,
-        },
-      });
-      success++;
+      try {
+        await prisma.question.create({
+          data: {
+            tryoutId,
+            question,
+            optionA,
+            optionB,
+            optionC,
+            optionD,
+            optionE,
+            answer,
+            explanation,
+            questionType: tipe === "tkp" ? "tkp" : "regular",
+            optionPoints,
+            order: maxOrder + success + 1,
+          },
+        });
+        success++;
+      } catch (err) {
+        errors.push(`Baris ${i + 2}: Gagal menyimpan ke database`);
+      }
     }
 
     await prisma.tryout.update({
@@ -108,7 +112,7 @@ export async function POST(
       errors,
       message: `Berhasil import ${success} soal${errors.length > 0 ? `, ${errors.length} gagal` : ""}`,
     });
-  } catch {
-    return NextResponse.json({ error: "Gagal memproses file" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Gagal memproses file: ${err.message || "format tidak valid"}` }, { status: 500 });
   }
 }

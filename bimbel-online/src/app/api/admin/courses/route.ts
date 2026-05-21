@@ -13,14 +13,19 @@ export async function GET() {
     });
 
     return NextResponse.json({ courses });
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
     const data = await request.json();
+    
+    if (!data.title || !data.slug || !data.category) {
+      return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
+    }
+
     const course = await prisma.course.create({
       data: {
         title: data.title,
@@ -33,7 +38,7 @@ export async function POST(request: Request) {
       },
     });
     return NextResponse.json({ course }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }

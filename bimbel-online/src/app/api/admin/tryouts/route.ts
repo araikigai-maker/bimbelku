@@ -10,14 +10,19 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json({ tryouts });
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
     const data = await request.json();
+    
+    if (!data.title || !data.slug || !data.category) {
+      return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
+    }
+
     const tryout = await prisma.tryout.create({
       data: {
         title: data.title,
@@ -32,7 +37,7 @@ export async function POST(request: Request) {
       },
     });
     return NextResponse.json({ tryout }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }

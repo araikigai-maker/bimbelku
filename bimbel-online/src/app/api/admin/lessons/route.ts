@@ -4,26 +4,36 @@ import { NextResponse, NextRequest } from "next/server";
 export async function POST(request: Request) {
   try {
     const { moduleId, title, content } = await request.json();
+    
+    if (!moduleId || !title) {
+      return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
+    }
+
     const maxOrder = await prisma.lesson.count({ where: { moduleId } });
     const lesson = await prisma.lesson.create({
       data: { moduleId, title, content, order: maxOrder + 1 },
     });
     return NextResponse.json({ lesson }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }
 
 export async function PUT(request: Request) {
   try {
     const { id, title, content } = await request.json();
+    
+    if (!id || !title) {
+      return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
+    }
+
     const lesson = await prisma.lesson.update({
       where: { id },
       data: { title, content },
     });
     return NextResponse.json({ lesson });
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }
 
@@ -34,7 +44,7 @@ export async function DELETE(request: NextRequest) {
     if (!id) return NextResponse.json({ error: "ID diperlukan" }, { status: 400 });
     await prisma.lesson.delete({ where: { id } });
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }

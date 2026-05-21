@@ -7,7 +7,7 @@ export async function GET() {
       orderBy: { grantedAt: "desc" },
     });
     return NextResponse.json({ accessList });
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }

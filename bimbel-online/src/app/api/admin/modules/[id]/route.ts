@@ -8,7 +8,7 @@ export async function DELETE(
   try {
     await prisma.module.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }

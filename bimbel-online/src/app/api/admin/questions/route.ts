@@ -4,6 +4,11 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const { tryoutId, question, optionA, optionB, optionC, optionD, optionE, answer, explanation, questionType, optionPoints } = await request.json();
+    
+    if (!tryoutId || !question || !optionA || !optionB || !optionC || !optionD || !answer) {
+      return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
+    }
+
     const maxOrder = await prisma.question.count({ where: { tryoutId } });
 
     const q = await prisma.question.create({
@@ -29,7 +34,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ question: q }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }

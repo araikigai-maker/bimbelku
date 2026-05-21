@@ -17,13 +17,18 @@ export async function POST(
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
+    // Track embedded images
+    let imageCount = 0;
+
     const result = await mammoth.convertToHtml(
       { buffer },
       {
         convertImage: mammoth.images.imgElement(async (image) => {
+          imageCount++;
           const imageBuffer = await image.read();
           const base64 = imageBuffer.toString("base64");
-          const dataUri = `data:${image.contentType || "image/png"};base64,${base64}`;
+          const mimeType = image.contentType || "image/png";
+          const dataUri = `data:${mimeType};base64,${base64}`;
           return { src: dataUri };
         }),
       }
@@ -74,7 +79,7 @@ export async function POST(
       };
 
       const rawCell = (html: string) => {
-        // Keep img tags for display, but extract text content
+        // Keep img and other tags for display
         return html.replace(/<\/?td>/g, "").trim();
       };
 
@@ -87,7 +92,7 @@ export async function POST(
       const optionD = cleanCell(cells[5] || "");
       const optionE = cleanCell(cells[6] || "");
       const answer = cleanCell(cells[7] || "").toUpperCase();
-      const explanation = cleanCell(cells[8] || "") || null;
+      const explanation = rawCell(cells[8] || "") || null;
       const tipe = cleanCell(cells[9] || "").toLowerCase() || "regular";
       const poinA = cleanCell(cells[10] || "");
       const poinB = cleanCell(cells[11] || "");
@@ -126,23 +131,27 @@ export async function POST(
         optionPoints = JSON.stringify(pts);
       }
 
-      await prisma.question.create({
-        data: {
-          tryoutId,
-          question,
-          optionA,
-          optionB,
-          optionC,
-          optionD,
-          optionE: optionE || null,
-          answer,
-          explanation,
-          questionType: tipe === "tkp" ? "tkp" : "regular",
-          optionPoints,
-          order: maxOrder + success + 1,
-        },
-      });
-      success++;
+      try {
+        await prisma.question.create({
+          data: {
+            tryoutId,
+            question,
+            optionA,
+            optionB,
+            optionC,
+            optionD,
+            optionE: optionE || null,
+            answer,
+            explanation,
+            questionType: tipe === "tkp" ? "tkp" : "regular",
+            optionPoints,
+            order: maxOrder + success + 1,
+          },
+        });
+        success++;
+      } catch (err) {
+        errors.push(`Baris ${i + 2}: Gagal menyimpan ke database`);
+      }
     }
 
     await prisma.tryout.update({
@@ -153,9 +162,9 @@ export async function POST(
     return NextResponse.json({
       success,
       errors,
-      images: 0,
+      images: imageCount,
       warnings: warnings.slice(0, 5),
-      message: `Berhasil import ${success} soal${errors.length > 0 ? `, ${errors.length} gagal` : ""}`,
+      message: `Berhasil import ${success} soal${imageCount > 0 ? ` dengan ${imageCount} gambar` : ""}${errors.length > 0 ? `, ${errors.length} gagal` : ""}`,
     });
   } catch (err: any) {
     return NextResponse.json(
