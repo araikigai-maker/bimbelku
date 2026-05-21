@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/db";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export async function GET(
-  req: NextRequest,
+  req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -33,7 +33,8 @@ export async function GET(
     }
 
     return NextResponse.json({ session, remaining });
-  } catch {
+  } catch (error) {
+    console.error(`[CAT/SESSIONS/${params.id}] GET Error:`, error);
     return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
   }
 }

@@ -226,6 +226,9 @@ export default function CatResultPage({
           </div>
 
           <div className="flex gap-4">
+            <Link href={`/cat/review/${sessionId}`} className="flex-1 bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition text-center">
+              Lihat Pembahasan
+            </Link>
             <Link href="/cat" className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition text-center">
               Dashboard CAT
             </Link>

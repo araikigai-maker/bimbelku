@@ -8,6 +8,7 @@ import { navItems } from "@/lib/constants";
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -20,9 +21,7 @@ export default function Navbar() {
       const stored = localStorage.getItem("user");
       setUser(stored ? JSON.parse(stored) : null);
     };
-    // Listen for custom event (same tab)
     window.addEventListener("user-updated", handleUserUpdate);
-    // Listen for native storage event (cross-tab)
     window.addEventListener("storage", handleUserUpdate);
     return () => {
       window.removeEventListener("user-updated", handleUserUpdate);
@@ -30,62 +29,96 @@ export default function Navbar() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
+    <nav className={`sticky top-0 z-50 transition-all duration-300 ${
+      scrolled
+        ? "bg-white/95 backdrop-blur shadow-md"
+        : "bg-white shadow-sm"
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl">📚</span>
-            <span className="text-xl font-bold text-blue-600">BimbelKu</span>
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm group-hover:bg-blue-700 transition">
+              B
+            </div>
+            <span className="text-xl font-extrabold text-gray-900">
+              Bimbel<span className="text-blue-600">Ku</span>
+            </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-gray-600 hover:text-blue-600 transition"
-              >
-                {item.name}
-              </Link>
-            ))}
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                    isActive
+                      ? "bg-blue-50 text-blue-700"
+                      : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
           </div>
 
+          {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <>
                 {user.role === "ADMIN" && (
-                  <Link href="/admin/overview" className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition">
-                    Admin Panel
+                  <Link
+                    href="/admin/overview"
+                    className="bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-red-100 transition"
+                  >
+                    ⚙️ Admin Panel
                   </Link>
                 )}
-                {user.role === "INSTRUCTOR" && (
-                  <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
-                    Instruktur
-                  </span>
-                )}
-                {user.role === "STUDENT" && (
-                  <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-                    Siswa
-                  </span>
-                )}
-                <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 font-medium">
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-2 text-gray-700 hover:text-blue-600 font-medium text-sm transition"
+                >
+                  <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-xs">
+                    {user.name?.charAt(0).toUpperCase()}
+                  </div>
                   {user.name}
                 </Link>
               </>
             ) : (
               <>
-                <Link href="/login" className="text-gray-600 hover:text-blue-600">
+                <Link
+                  href="/login"
+                  className="text-gray-600 hover:text-blue-600 font-medium text-sm transition"
+                >
                   Masuk
                 </Link>
-                <Link href="/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                  Daftar
+                <Link
+                  href="/register"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition shadow-sm"
+                >
+                  Daftar Gratis
                 </Link>
               </>
             )}
           </div>
 
-          <button className="md:hidden p-2" onClick={() => setMobileOpen(!mobileOpen)}>
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
+          >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {mobileOpen ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -96,41 +129,58 @@ export default function Navbar() {
           </button>
         </div>
 
+        {/* Mobile Menu */}
         {mobileOpen && (
-          <div className="md:hidden py-4 border-t">
+          <div className="md:hidden py-4 border-t border-gray-100 space-y-1">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="block py-2 text-gray-600 hover:text-blue-600"
+                className="block px-4 py-2.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition"
                 onClick={() => setMobileOpen(false)}
               >
                 {item.name}
               </Link>
             ))}
-            {user ? (
-              <>
-                {user.role === "ADMIN" && (
-                  <Link href="/admin/overview" className="block py-2 text-red-600 font-medium" onClick={() => setMobileOpen(false)}>
-                    Panel Admin
+            <div className="pt-3 border-t border-gray-100 mt-3 flex flex-col gap-2">
+              {user ? (
+                <>
+                  {user.role === "ADMIN" && (
+                    <Link
+                      href="/admin/overview"
+                      className="px-4 py-2.5 text-red-600 font-semibold bg-red-50 rounded-lg"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      ⚙️ Admin Panel
+                    </Link>
+                  )}
+                  <Link
+                    href="/dashboard"
+                    className="px-4 py-2.5 text-blue-600 font-semibold bg-blue-50 rounded-lg"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Dashboard ({user.name})
                   </Link>
-                )}
-                {user.role === "INSTRUCTOR" && (
-                  <div className="py-2 text-sm text-purple-600 font-medium">Status: Instruktur</div>
-                )}
-                {user.role === "STUDENT" && (
-                  <div className="py-2 text-sm text-blue-600 font-medium">Status: Siswa</div>
-                )}
-                <Link href="/dashboard" className="block py-2 text-blue-600 font-medium" onClick={() => setMobileOpen(false)}>
-                  Dashboard ({user.name})
-                </Link>
-              </>
-            ) : (
-              <div className="flex gap-4 mt-4">
-                <Link href="/login" className="text-gray-600">Masuk</Link>
-                <Link href="/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg">Daftar</Link>
-              </div>
-            )}
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="px-4 py-2.5 text-gray-600 font-medium text-center border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Masuk
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="px-4 py-2.5 text-white font-semibold text-center bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Daftar Gratis
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>

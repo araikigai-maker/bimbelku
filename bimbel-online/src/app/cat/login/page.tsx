@@ -7,6 +7,7 @@ import Link from "next/link";
 export default function CatLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -19,7 +20,7 @@ export default function CatLoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password: "cat2026" }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
 
@@ -75,11 +76,12 @@ export default function CatLoginPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <input
               type="password"
-              value="cat2026"
-              readOnly
-              className="w-full px-4 py-3 border rounded-xl bg-gray-50 text-gray-400 cursor-not-allowed"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              placeholder="Masukkan password Anda"
+              required
             />
-            <p className="text-xs text-gray-400 mt-1">Password sudah diisi otomatis</p>
           </div>
 
           <button

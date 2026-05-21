@@ -11,6 +11,7 @@ const navItems = [
   { name: "Akses CAT", href: "/admin/cat-access", icon: "🔑" },
   { name: "Pengguna", href: "/admin/users", icon: "👥" },
   { name: "Hasil Tryout", href: "/admin/results", icon: "📈" },
+  { name: "Langganan", href: "/admin/subscriptions", icon: "💳", badge: "Baru" },
 ];
 
 export default function AdminSidebar() {
@@ -42,7 +43,12 @@ export default function AdminSidebar() {
               }`}
             >
               <span>{item.icon}</span>
-              <span>{item.name}</span>
+              <span className="flex-1">{item.name}</span>
+              {"badge" in item && item.badge && (
+                <span className="text-[10px] bg-yellow-400 text-yellow-900 font-bold px-1.5 py-0.5 rounded-full">
+                  {item.badge}
+                </span>
+              )}
             </Link>
           );
         })}

@@ -84,29 +84,34 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="text-3xl font-bold text-blue-600">6</div>
-            <div className="text-gray-600">Kursus Tersedia</div>
+            <div className="text-gray-600 text-sm md:text-base">Kursus Tersedia</div>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="text-3xl font-bold text-green-600">4</div>
-            <div className="text-gray-600">Tryout Tersedia</div>
+            <div className="text-gray-600 text-sm md:text-base">Tryout Tersedia</div>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-blue-200 relative bg-blue-50">
+            <div className="text-3xl font-bold text-blue-800">2</div>
+            <div className="text-blue-900 font-medium text-sm md:text-base">Simulasi CAT</div>
+            <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="text-3xl font-bold text-purple-600">{results.length}</div>
-            <div className="text-gray-600">Tryout Selesai</div>
+            <div className="text-gray-600 text-sm md:text-base">Tryout Selesai</div>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="text-3xl font-bold text-orange-600">{avgScore}%</div>
-            <div className="text-gray-600">Rata-rata Skor</div>
+            <div className="text-gray-600 text-sm md:text-base">Rata-rata Skor</div>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8">
+          <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col">
             <h2 className="text-xl font-bold mb-4">Kursus</h2>
-            <div className="space-y-3">
+            <div className="space-y-3 flex-1">
               {[
                 { name: "Persiapan UTBK Saintek", slug: "utbk-saintek-2026", lessons: 5 },
                 { name: "Persiapan SKD CPNS", slug: "skd-cpns-2026", lessons: 4 },
@@ -130,9 +135,9 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col">
             <h2 className="text-xl font-bold mb-4">Tryout Online</h2>
-            <div className="space-y-3">
+            <div className="space-y-3 flex-1">
               {[
                 { name: "Tryout UTBK Saintek", slug: "tryout-utbk-saintek-1", qs: 10 },
                 { name: "Tryout SKD TWK", slug: "tryout-skd-twk-1", qs: 10 },
@@ -153,6 +158,37 @@ export default function DashboardPage() {
             </div>
             <Link href="/tryouts" className="mt-4 text-blue-600 hover:underline inline-block">
               Lihat semua tryout →
+            </Link>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col border-2 border-blue-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+              PRO
+            </div>
+            <h2 className="text-xl font-bold mb-4 text-blue-900 flex items-center gap-2">
+              <span>📋</span> Simulasi CAT BKN
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Uji kemampuan Anda dengan simulasi Computer Assisted Test (CAT) standar BKN yang dilengkapi dengan manajemen waktu dan perhitungan skor asli.
+            </p>
+            <div className="space-y-3 flex-1">
+              <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                <div className="text-blue-500 mt-1">✓</div>
+                <div>
+                  <div className="font-medium text-sm text-blue-900">Format Asli BKN</div>
+                  <div className="text-xs text-blue-700">Tampilan dan waktu sesuai aslinya</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                <div className="text-blue-500 mt-1">✓</div>
+                <div>
+                  <div className="font-medium text-sm text-blue-900">Pembahasan Lengkap</div>
+                  <div className="text-xs text-blue-700">Evaluasi jawaban setelah ujian</div>
+                </div>
+              </div>
+            </div>
+            <Link href="/cat" className="mt-6 block text-center bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-sm">
+              Masuk ke Portal CAT →
             </Link>
           </div>
         </div>

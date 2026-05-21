@@ -4,11 +4,31 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password } = await request.json();
+    const body = await request.json();
+    const { name, email, password } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: "Semua field wajib diisi" },
+        { status: 400 }
+      );
+    }
+
+    const trimmedName = name.trim();
+    const normalizedEmail = email.toLowerCase().trim();
+
+    if (trimmedName.length < 2) {
+      return NextResponse.json(
+        { error: "Nama minimal 2 karakter" },
+        { status: 400 }
+      );
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalizedEmail)) {
+      return NextResponse.json(
+        { error: "Format email tidak valid" },
         { status: 400 }
       );
     }
@@ -20,7 +40,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
     if (existingUser) {
       return NextResponse.json(
@@ -33,8 +53,8 @@ export async function POST(request: Request) {
 
     const user = await prisma.user.create({
       data: {
-        name,
-        email,
+        name: trimmedName,
+        email: normalizedEmail,
         password: hashedPassword,
       },
     });
@@ -48,8 +68,9 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
+    console.error("[AUTH/REGISTER] Error:", error);
     return NextResponse.json(
-      { error: "Terjadi kesalahan" },
+      { error: "Terjadi kesalahan server" },
       { status: 500 }
     );
   }

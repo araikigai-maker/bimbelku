@@ -7,6 +7,7 @@ async function main() {
   const hashedPassword = await hash("password123", 12);
 
   await prisma.user.createMany({
+    skipDuplicates: true,
     data: [
       {
         name: "Admin Bimbel",
@@ -24,6 +25,7 @@ async function main() {
   });
 
   await prisma.course.createMany({
+    skipDuplicates: true,
     data: [
       {
         title: "Persiapan UTBK Saintek 2026",
@@ -101,6 +103,7 @@ async function main() {
   });
 
   await prisma.tryout.createMany({
+    skipDuplicates: true,
     data: [
       {
         title: "Tryout UTBK Saintek #1",
@@ -144,6 +147,67 @@ async function main() {
       },
     ],
   });
+
+  // ============================================================
+  // MONETIZATION: Seed Plan data
+  // ============================================================
+  const plans = [
+    {
+      slug: "FREE",
+      name: "Gratis",
+      description: "Coba fitur dasar bimbel online",
+      price: 0,
+      durationDays: 0,
+      features: JSON.stringify(["Akses 2 tryout gratis", "Materi dasar", "Lihat Leaderboard", "Lihat Pembahasan"]),
+      isActive: true,
+      highlighted: false,
+      order: 1,
+    },
+    {
+      slug: "PREMIUM",
+      name: "Premium",
+      description: "Akses penuh semua fitur bimbel",
+      price: 99000,
+      durationDays: 30,
+      features: JSON.stringify([
+        "Semua tryout unlimited",
+        "Semua simulasi CAT",
+        "Pembahasan lengkap",
+        "Leaderboard Nasional",
+        "Semua kursus & video",
+        "Progress tracking",
+        "Sertifikat",
+      ]),
+      isActive: true,
+      highlighted: true,
+      order: 2,
+    },
+    {
+      slug: "ENTERPRISE",
+      name: "Enterprise",
+      description: "Untuk sekolah dan institusi",
+      price: 199000,
+      durationDays: 30,
+      features: JSON.stringify([
+        "Semua fitur Premium",
+        "Multi-user management",
+        "Laporan analitik sekolah",
+        "Custom branding",
+        "Support prioritas",
+      ]),
+      isActive: true,
+      highlighted: false,
+      order: 3,
+    },
+  ];
+
+  for (const plan of plans) {
+    await prisma.plan.upsert({
+      where: { slug: plan.slug },
+      update: plan,
+      create: plan,
+    });
+  }
 
   console.log("Seed completed successfully!");
 }

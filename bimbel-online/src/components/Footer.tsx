@@ -35,11 +35,12 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Kontak</h3>
+            <h3 className="font-semibold mb-4">Kontak & Bantuan</h3>
             <ul className="space-y-2 text-gray-400">
               <li>Email: info@bimbelku.id</li>
               <li>WA: 0812-3456-7890</li>
-              <li>Instagram: @bimbelku</li>
+              <li className="pt-2"><Link href="/terms" className="hover:text-white transition">Syarat & Ketentuan</Link></li>
+              <li><Link href="/privacy" className="hover:text-white transition">Kebijakan Privasi</Link></li>
             </ul>
           </div>
         </div>

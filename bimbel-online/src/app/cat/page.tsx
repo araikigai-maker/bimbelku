@@ -22,16 +22,25 @@ interface Tryout {
 export default function CatDashboardPage() {
   const router = useRouter();
   const [tryouts, setTryouts] = useState<Tryout[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (!stored) { router.push("/cat/login"); return; }
-    setUser(JSON.parse(stored));
+    const parsedUser = JSON.parse(stored);
+    setUser(parsedUser);
     fetch("/api/cat/sessions")
       .then((r) => r.json())
-      .then((data) => { setTryouts(data.tryouts || []); setLoading(false); })
+      .then((data) => { 
+        setTryouts(data.tryouts || []); 
+        setLoading(false); 
+        // Fetch history using userId (more secure than email)
+        fetch(`/api/cat/history?userId=${encodeURIComponent(parsedUser.id)}`)
+          .then(r => r.json())
+          .then(histData => setHistory(histData.sessions || []));
+      })
       .catch(() => setLoading(false));
   }, [router]);
 
@@ -114,6 +123,12 @@ export default function CatDashboardPage() {
                     >
                       Lihat Detail & Mulai Ujian →
                     </Link>
+                    <Link
+                      href={`/cat/leaderboard/${t.id}`}
+                      className="bg-yellow-500 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-yellow-600 transition inline-flex items-center gap-2"
+                    >
+                      🏆 Lihat Leaderboard
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -124,6 +139,50 @@ export default function CatDashboardPage() {
             <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
               <p className="text-5xl mb-4">📋</p>
               <p className="text-gray-500">Belum ada simulasi CAT CPNS yang tersedia.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Riwayat Ujian Section */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-6">Riwayat Ujian Saya</h2>
+          
+          {history.length > 0 ? (
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100">
+                    <th className="p-4 font-semibold text-gray-600">Simulasi</th>
+                    <th className="p-4 font-semibold text-gray-600">Tanggal & Waktu</th>
+                    <th className="p-4 font-semibold text-gray-600">Status</th>
+                    <th className="p-4 font-semibold text-gray-600 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {history.map((h) => (
+                    <tr key={h.id} className="border-b border-gray-50 hover:bg-gray-50">
+                      <td className="p-4 font-medium text-gray-800">{h.tryout?.title}</td>
+                      <td className="p-4 text-gray-500">
+                        {new Date(h.endedAt).toLocaleDateString("id-ID", { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute:'2-digit' })}
+                      </td>
+                      <td className="p-4">
+                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">
+                          Selesai
+                        </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <Link href={`/cat/result/${h.id}`} className="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                          Lihat Hasil & Pembahasan →
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl p-8 text-center border border-gray-100 border-dashed">
+              <p className="text-gray-400">Belum ada riwayat ujian yang diselesaikan.</p>
             </div>
           )}
         </div>

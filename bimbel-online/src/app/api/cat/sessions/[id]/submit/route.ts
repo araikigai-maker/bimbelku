@@ -7,15 +7,16 @@ const SUBTEST_PASSING_GRADES: Record<string, { points: number; label: string }> 
   TKP: { points: 166, label: "Tes Karakteristik Pribadi" },
 };
 
-async function calculateResult(sessionId: string, tryoutId: string, userId: string) {
-  const questions = await prisma.question.findMany({
-    where: { tryoutId },
-    orderBy: { order: "asc" },
-  });
-
-  const answers = await prisma.catAnswer.findMany({
-    where: { sessionId },
-  });
+async function calculateResult(sessionId: string, tryoutId: string) {
+  const [questions, answers] = await Promise.all([
+    prisma.question.findMany({
+      where: { tryoutId },
+      orderBy: { order: "asc" },
+    }),
+    prisma.catAnswer.findMany({
+      where: { sessionId },
+    }),
+  ]);
 
   const answerMap = new Map(answers.map((a) => [a.questionId, a]));
   let earnedPoints = 0;
@@ -79,7 +80,7 @@ async function calculateResult(sessionId: string, tryoutId: string, userId: stri
         label: pg?.label || name,
         earned: data.earned,
         max: data.max,
-        score: Math.round((data.earned / data.max) * 100),
+        score: data.max > 0 ? Math.round((data.earned / data.max) * 100) : 0,
         count: data.count,
         passingGradePoints: pg?.points || 0,
         passed: data.earned >= (pg?.points || 0),
@@ -93,8 +94,14 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    const sessionId = params.id;
+
+    // Get userId from request body for ownership validation
+    const body = await req.json().catch(() => ({}));
+    const requestUserId = body?.userId;
+
     const session = await prisma.catSession.findUnique({
-      where: { id: params.id },
+      where: { id: sessionId },
       include: { tryout: true },
     });
 
@@ -102,27 +109,35 @@ export async function POST(
       return NextResponse.json({ error: "Sesi tidak ditemukan" }, { status: 404 });
     }
 
-    const result = await calculateResult(params.id, session.tryoutId, session.userId);
+    // Ownership check: if userId is provided, verify it matches the session owner
+    // This prevents one user from submitting/tampering another user's session
+    if (requestUserId && session.userId !== requestUserId) {
+      console.warn(`[CAT/SUBMIT] Ownership mismatch: request userId=${requestUserId}, session userId=${session.userId}`);
+      return NextResponse.json({ error: "Akses tidak diizinkan" }, { status: 403 });
+    }
+
+    const result = await calculateResult(sessionId, session.tryoutId);
 
     // Only update session & save result if this is the first submission
     if (session.status === "active") {
-      await prisma.catSession.update({
-        where: { id: params.id },
-        data: { status: "submitted", endedAt: new Date() },
-      });
-
-      await prisma.tryoutResult.create({
-        data: {
-          userId: session.userId,
-          tryoutId: session.tryoutId,
-          score: result.score,
-          correct: result.correct,
-          wrong: result.wrong,
-          answered: result.correct + result.wrong,
-          earnedPoints: result.earnedPoints,
-          maxPoints: result.maxPoints,
-        },
-      });
+      await prisma.$transaction([
+        prisma.catSession.update({
+          where: { id: sessionId },
+          data: { status: "submitted", endedAt: new Date() },
+        }),
+        prisma.tryoutResult.create({
+          data: {
+            userId: session.userId,
+            tryoutId: session.tryoutId,
+            score: result.score,
+            correct: result.correct,
+            wrong: result.wrong,
+            answered: result.correct + result.wrong,
+            earnedPoints: result.earnedPoints,
+            maxPoints: result.maxPoints,
+          },
+        }),
+      ]);
     }
 
     return NextResponse.json({
@@ -130,7 +145,8 @@ export async function POST(
       passingGrade: session.tryout.passingGrade,
       catPassingGradePoints: session.tryout.catPassingGradePoints || 0,
     });
-  } catch {
-    return NextResponse.json({ error: "Gagal submit" }, { status: 500 });
+  } catch (error) {
+    console.error(`[CAT/SESSIONS/${params.id}/SUBMIT] Error:`, error);
+    return NextResponse.json({ error: "Gagal submit ujian" }, { status: 500 });
   }
 }

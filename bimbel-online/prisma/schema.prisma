@@ -20,6 +20,7 @@ model User {
   enrollments   Enrollment[]
   tryoutResults TryoutResult[]
   catSessions   CatSession[]
+  subscriptions Subscription[]
 }
 
 model Course {
@@ -85,6 +86,9 @@ model Tryout {
   catAvailableFrom DateTime?
   catAvailableUntil DateTime?
   catPassingGradePoints Int @default(0) // Total points passing grade (e.g. 285 for SKD)
+  pgTwk         Int      @default(65)   // TWK passing grade points
+  pgTiu         Int      @default(80)   // TIU passing grade points
+  pgTkp         Int      @default(166)  // TKP passing grade points
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -166,4 +170,46 @@ model CatAccess {
   name      String?
   active    Boolean  @default(true)
   grantedAt DateTime @default(now())
+}
+
+// ============================================================
+// MONETIZATION INFRASTRUCTURE
+// ============================================================
+
+model Plan {
+  id           String   @id @default(cuid())
+  slug         String   @unique // FREE, PREMIUM, ENTERPRISE
+  name         String
+  description  String
+  price        Int      // in IDR (e.g. 99000)
+  durationDays Int      @default(30) // 0 = lifetime / no expiry for FREE
+  features     String   @db.Text // JSON array of feature strings
+  isActive     Boolean  @default(true)
+  highlighted  Boolean  @default(false) // shown as "most popular"
+  order        Int      @default(0)     // display order on pricing page
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id          String    @id @default(cuid())
+  userId      String
+  planId      String
+  status      String    @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
+  startDate   DateTime  @default(now())
+  endDate     DateTime? // null = no expiry (lifetime plan)
+  paymentId   String?   // will be filled by Midtrans/Xendit webhook
+  paymentRef  String?   // external order ID for reconciliation
+  activatedBy String    @default("MANUAL") // MANUAL (admin) or PAYMENT_GATEWAY
+  notes       String?   // admin notes (e.g. "promo batch pertama")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan Plan @relation(fields: [planId], references: [id])
+
+  @@index([userId, status])
+  @@index([status, endDate])
 }
