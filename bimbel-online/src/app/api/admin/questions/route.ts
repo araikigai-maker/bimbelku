@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { tryoutId, question, optionA, optionB, optionC, optionD, optionE, answer, explanation, questionType, optionPoints } = await request.json();
+    const { tryoutId, question, optionA, optionB, optionC, optionD, optionE, answer, explanation, questionType, optionPoints, subtest } = await request.json();
     
     if (!tryoutId || !question || !optionA || !optionB || !optionC || !optionD || !answer) {
       return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
@@ -25,6 +25,7 @@ export async function POST(request: Request) {
         questionType: questionType || "regular",
         optionPoints: optionPoints || "{}",
         order: maxOrder + 1,
+        subtest: subtest || null,
       },
     });
 

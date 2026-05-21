@@ -18,12 +18,22 @@ export default function NewCatSimulationPage() {
     catPassingGradePoints: "285",
     catAvailableFrom: "",
     catAvailableUntil: "",
+    pgTwk: "65",
+    pgTiu: "80",
+    pgTkp: "166",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  // Auto-update total PG when subtest PG changes
+  const handlePgChange = (field: "pgTwk" | "pgTiu" | "pgTkp", value: string) => {
+    const updated = { ...form, [field]: value };
+    const total = (parseInt(updated.pgTwk) || 0) + (parseInt(updated.pgTiu) || 0) + (parseInt(updated.pgTkp) || 0);
+    setForm({ ...updated, catPassingGradePoints: total.toString() });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,6 +53,9 @@ export default function NewCatSimulationPage() {
           catPassingGradePoints: parseInt(form.catPassingGradePoints),
           catAvailableFrom: form.catAvailableFrom || null,
           catAvailableUntil: form.catAvailableUntil || null,
+          pgTwk: parseInt(form.pgTwk),
+          pgTiu: parseInt(form.pgTiu),
+          pgTkp: parseInt(form.pgTkp),
         }),
       });
 
@@ -83,14 +96,10 @@ export default function NewCatSimulationPage() {
 
           <h3 className="text-lg font-semibold text-gray-800 border-b pb-2 mt-6">Pengaturan Simulasi CAT</h3>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Durasi (menit)</label>
               <input name="duration" type="number" value={form.duration} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Passing Grade (poin)</label>
-              <input name="catPassingGradePoints" type="number" value={form.catPassingGradePoints} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
@@ -113,8 +122,57 @@ export default function NewCatSimulationPage() {
             </div>
           </div>
 
-          <div className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
-            <strong>Format Soal CAT CPNS:</strong> TWK 30 soal (PG 65), TIU 35 soal (PG 80), TKP 45 soal (PG 166) — Total 110 soal (PG 285 poin)
+          {/* Passing Grade per Subtest */}
+          <h3 className="text-lg font-semibold text-gray-800 border-b pb-2 mt-6">Passing Grade per Subtest</h3>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-700 mb-4">
+              Standar SKD CPNS: TWK 30 soal (PG 65 poin), TIU 35 soal (PG 80 poin), TKP 45 soal (PG 166 poin) — Total 110 soal
+            </p>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-blue-800 mb-1">
+                  TWK <span className="text-xs font-normal text-gray-500">(30 soal)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="number" min="0" value={form.pgTwk}
+                    onChange={(e) => handlePgChange("pgTwk", e.target.value)}
+                    className="w-full px-4 py-2 border rounded-lg pr-12"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">poin</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-green-800 mb-1">
+                  TIU <span className="text-xs font-normal text-gray-500">(35 soal)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="number" min="0" value={form.pgTiu}
+                    onChange={(e) => handlePgChange("pgTiu", e.target.value)}
+                    className="w-full px-4 py-2 border rounded-lg pr-12"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">poin</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-purple-800 mb-1">
+                  TKP <span className="text-xs font-normal text-gray-500">(45 soal)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="number" min="0" value={form.pgTkp}
+                    onChange={(e) => handlePgChange("pgTkp", e.target.value)}
+                    className="w-full px-4 py-2 border rounded-lg pr-12"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">poin</span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between bg-white border rounded-lg px-4 py-2">
+              <span className="text-sm font-medium text-gray-700">Total Passing Grade</span>
+              <span className="text-lg font-bold text-blue-600">{form.catPassingGradePoints} poin</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

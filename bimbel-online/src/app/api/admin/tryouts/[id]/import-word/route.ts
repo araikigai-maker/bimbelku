@@ -83,7 +83,7 @@ export async function POST(
         return html.replace(/<\/?td>/g, "").trim();
       };
 
-      // Column mapping: No(0), Pertanyaan(1), OpsiA(2), OpsiB(3), OpsiC(4), OpsiD(5), OpsiE(6), Jawaban(7), Pembahasan(8), Tipe(9), PoinA(10), PoinB(11), PoinC(12), PoinD(13), PoinE(14)
+      // Column mapping: No(0), Pertanyaan(1), OpsiA(2), OpsiB(3), OpsiC(4), OpsiD(5), OpsiE(6), Jawaban(7), Pembahasan(8), Tipe(9), Subtest(10), PoinA(11), PoinB(12), PoinC(13), PoinD(14), PoinE(15)
       const no = cleanCell(cells[0]);
       const question = rawCell(cells[1] || "");
       const optionA = cleanCell(cells[2] || "");
@@ -94,11 +94,13 @@ export async function POST(
       const answer = cleanCell(cells[7] || "").toUpperCase();
       const explanation = rawCell(cells[8] || "") || null;
       const tipe = cleanCell(cells[9] || "").toLowerCase() || "regular";
-      const poinA = cleanCell(cells[10] || "");
-      const poinB = cleanCell(cells[11] || "");
-      const poinC = cleanCell(cells[12] || "");
-      const poinD = cleanCell(cells[13] || "");
-      const poinE = cleanCell(cells[14] || "");
+      const subtestRaw = cleanCell(cells[10] || "").toUpperCase();
+      const subtest = ["TWK", "TIU", "TKP"].includes(subtestRaw) ? subtestRaw : null;
+      const poinA = cleanCell(cells[11] || "");
+      const poinB = cleanCell(cells[12] || "");
+      const poinC = cleanCell(cells[13] || "");
+      const poinD = cleanCell(cells[14] || "");
+      const poinE = cleanCell(cells[15] || "");
 
       if (!question || question === "Pertanyaan") continue;
       if (!optionA || !optionB || !optionC || !optionD) {
@@ -146,6 +148,7 @@ export async function POST(
             questionType: tipe === "tkp" ? "tkp" : "regular",
             optionPoints,
             order: maxOrder + success + 1,
+            subtest,
           },
         });
         success++;

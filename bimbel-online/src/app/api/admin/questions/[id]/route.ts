@@ -25,6 +25,7 @@ export async function PUT(
         explanation: d.explanation,
         questionType: d.questionType || "regular",
         optionPoints: d.optionPoints || "{}",
+        subtest: d.subtest || null,
       },
     });
     return NextResponse.json({ question: q });

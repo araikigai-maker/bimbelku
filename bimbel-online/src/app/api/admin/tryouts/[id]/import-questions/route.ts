@@ -41,11 +41,13 @@ export async function POST(
       const answer = row[6]?.toString().trim().toUpperCase();
       const explanation = row[7]?.toString().trim() || null;
       const tipe = row[8]?.toString().trim().toLowerCase() || "regular";
-      const poinA = row[9]?.toString().trim();
-      const poinB = row[10]?.toString().trim();
-      const poinC = row[11]?.toString().trim();
-      const poinD = row[12]?.toString().trim();
-      const poinE = row[13]?.toString().trim();
+      const subtestRaw = row[9]?.toString().trim().toUpperCase() || null;
+      const subtest = ["TWK", "TIU", "TKP"].includes(subtestRaw || "") ? subtestRaw : null;
+      const poinA = row[10]?.toString().trim();
+      const poinB = row[11]?.toString().trim();
+      const poinC = row[12]?.toString().trim();
+      const poinD = row[13]?.toString().trim();
+      const poinE = row[14]?.toString().trim();
 
       if (!question || !optionA || !optionB || !optionC || !optionD || !answer) {
         errors.push(`Baris ${i + 2}: data tidak lengkap`);
@@ -94,6 +96,7 @@ export async function POST(
             questionType: tipe === "tkp" ? "tkp" : "regular",
             optionPoints,
             order: maxOrder + success + 1,
+            subtest,
           },
         });
         success++;

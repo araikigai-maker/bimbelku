@@ -32,6 +32,9 @@ export async function PUT(
       price: parseInt(data.price),
       image: data.image,
       passingGrade: parseInt(data.passingGrade) || 0,
+      pgTwk: parseInt(data.pgTwk) || 65,
+      pgTiu: parseInt(data.pgTiu) || 80,
+      pgTkp: parseInt(data.pgTkp) || 166,
     };
     if (data.catPassingGradePoints !== undefined) {
       updateData.catPassingGradePoints = parseInt(data.catPassingGradePoints) || 0;

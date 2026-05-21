@@ -85,6 +85,9 @@ model Tryout {
   catAvailableFrom DateTime?
   catAvailableUntil DateTime?
   catPassingGradePoints Int @default(0) // Total points passing grade (e.g. 285 for SKD)
+  pgTwk         Int      @default(65)  // Passing grade TWK (poin)
+  pgTiu         Int      @default(80)  // Passing grade TIU (poin)
+  pgTkp         Int      @default(166) // Passing grade TKP (poin)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
