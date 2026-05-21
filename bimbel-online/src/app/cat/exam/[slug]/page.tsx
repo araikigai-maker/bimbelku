@@ -86,6 +86,15 @@ export default function CatExamPage({
     fetchSession();
   }, [sessionId, user, params.slug, router]);
 
+  const handleTimeout = useCallback(async () => {
+    if (!sessionId) return;
+    setSessionStatus("timeout");
+    try {
+      await fetch(`/api/cat/sessions/${sessionId}/submit`, { method: "POST" });
+    } catch {}
+    router.push(`/cat/result/${sessionId}`);
+  }, [sessionId, router]);
+
   useEffect(() => {
     if (sessionStatus !== "active") return;
     const interval = setInterval(() => {
@@ -114,15 +123,6 @@ export default function CatExamPage({
     }, 30000);
     return () => clearInterval(heartbeat);
   }, [sessionId, sessionStatus, router]);
-
-  const handleTimeout = useCallback(async () => {
-    if (!sessionId) return;
-    setSessionStatus("timeout");
-    try {
-      await fetch(`/api/cat/sessions/${sessionId}/submit`, { method: "POST" });
-    } catch {}
-    router.push(`/cat/result/${sessionId}`);
-  }, [sessionId, router]);
 
   const saveAnswer = useCallback(async (questionId: string, answer: string | null, raguValue: boolean) => {
     if (!sessionId) return;
