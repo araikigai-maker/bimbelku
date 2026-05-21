@@ -52,7 +52,7 @@ export default function CatDashboardPage() {
               <p className="text-gray-500 mt-1">Selamat datang, {user?.name || "Peserta"}</p>
             </div>
             <button
-              onClick={() => { localStorage.removeItem("user"); router.push("/cat/login"); }}
+              onClick={() => { localStorage.removeItem("user"); window.dispatchEvent(new Event("user-updated")); router.push("/cat/login"); }}
               className="text-sm text-red-500 hover:underline"
             >
               Keluar

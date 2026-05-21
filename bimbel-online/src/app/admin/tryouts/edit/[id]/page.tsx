@@ -91,11 +91,14 @@ export default function EditTryoutPage({
           </div>
           <div className="grid grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Kategori Tryout</label>
               <select name="category" value={form.category} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg">
                 <option value="UTBK">UTBK</option>
-                <option value="SKD">SKD</option>
-                <option value="CPNS">CPNS</option>
+                <option value="SKD">SKD (CPNS)</option>
+                <option value="CPNS">CPNS Umum</option>
+                <option value="Kedinasan">Kedinasan</option>
+                <option value="SMP">SMP</option>
+                <option value="Bahasa">Bahasa</option>
               </select>
             </div>
             <div>

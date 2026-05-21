@@ -74,8 +74,22 @@ export default function QuestionsPage({
       .then((res) => res.json())
       .then((data) => {
         if (data.tryout) {
-          setTryout(data.tryout);
-          setQuestions(data.tryout.questions || []);
+          const t = data.tryout;
+          // Parse subtest PG config from description suffix
+          const desc = t.description || "";
+          const catPgMatch = desc.match(/\|\|CATPG:(\{.*?\})/);
+          if (catPgMatch) {
+            try {
+              const cfg = JSON.parse(catPgMatch[1]);
+              t.pgTwk = cfg.pgTwk || 65;
+              t.pgTiu = cfg.pgTiu || 80;
+              t.pgTkp = cfg.pgTkp || 166;
+            } catch {}
+          } else {
+            t.pgTwk = 65; t.pgTiu = 80; t.pgTkp = 166;
+          }
+          setTryout(t);
+          setQuestions(t.questions || []);
         }
         setLoading(false);
       })
@@ -130,6 +144,29 @@ export default function QuestionsPage({
       subtest: q.subtest || "TWK",
     });
     setShowForm(true);
+  };
+
+  const handleBulkDelete = async () => {
+    const targetText = activeSubtest === "all" ? "SEMUA soal" : `semua soal ${activeSubtest}`;
+    if (!confirm(`⚠️ PERINGATAN!\n\nApakah Anda yakin ingin menghapus ${targetText} dalam simulasi ini?\nSoal yang dihapus tidak dapat dikembalikan.`)) return;
+    
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/questions?tryoutId=${id}&subtest=${activeSubtest}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        alert(`Berhasil menghapus ${data.deleted} soal.`);
+        fetchQuestions();
+      } else {
+        alert("Gagal menghapus soal");
+        setLoading(false);
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan jaringan");
+      setLoading(false);
+    }
   };
 
   const handleUpdate = async () => {
@@ -204,16 +241,26 @@ export default function QuestionsPage({
             <p className="text-gray-600">Total: {questions.length} soal | Durasi: {tryout?.duration} menit</p>
           </div>
         </div>
-        <button
-          onClick={() => { setShowForm(true); setEditingId(null); setForm({ ...EMPTY_FORM, subtest: activeSubtest !== "all" ? activeSubtest : "TWK" }); }}
-          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-        >
-          + Tambah Soal
-        </button>
+        <div className="flex gap-2">
+          {filteredQuestions.length > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg hover:bg-red-100 transition flex items-center gap-2 text-sm font-medium"
+            >
+              🗑️ Hapus {activeSubtest === "all" ? "Semua Soal" : `Semua ${activeSubtest}`}
+            </button>
+          )}
+          <button
+            onClick={() => { setShowForm(true); setEditingId(null); setForm({ ...EMPTY_FORM, subtest: activeSubtest !== "all" ? activeSubtest : "TWK" }); }}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+          >
+            + Tambah Soal
+          </button>
+        </div>
       </div>
 
       {/* Subtest Progress Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {(["TWK", "TIU", "TKP"] as const).map((st) => {
           const info = SUBTEST_LABELS[st];
           const count = counts[st];
@@ -479,9 +526,14 @@ export default function QuestionsPage({
                   );
                 })()}
               </div>
-              <div className="ml-11 mt-2 flex items-center gap-3">
-                <span className="text-sm">Jawaban: <span className="font-bold text-green-600">{q.answer}</span></span>
-                {q.explanation && <span className="text-sm text-gray-600">- {q.explanation}</span>}
+              <div className="ml-11 mt-2 flex items-start gap-3">
+                <span className="text-sm shrink-0">Jawaban: <span className="font-bold text-green-600">{q.answer}</span></span>
+                {q.explanation && (
+                  <div className="text-sm text-gray-600 flex gap-2 w-full">
+                    <span className="shrink-0">-</span>
+                    <div className="w-full" dangerouslySetInnerHTML={{ __html: q.explanation }} />
+                  </div>
+                )}
               </div>
             </div>
           );

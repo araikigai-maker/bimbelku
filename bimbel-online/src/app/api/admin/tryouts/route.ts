@@ -37,9 +37,6 @@ export async function POST(request: Request) {
         catPassingGradePoints: parseInt(data.catPassingGradePoints) || 0,
         catAvailableFrom: data.catAvailableFrom ? new Date(data.catAvailableFrom) : null,
         catAvailableUntil: data.catAvailableUntil ? new Date(data.catAvailableUntil) : null,
-        pgTwk: parseInt(data.pgTwk) || 65,
-        pgTiu: parseInt(data.pgTiu) || 80,
-        pgTkp: parseInt(data.pgTkp) || 166,
       },
     });
     return NextResponse.json({ tryout }, { status: 201 });

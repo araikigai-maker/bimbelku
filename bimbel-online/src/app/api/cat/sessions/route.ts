@@ -4,9 +4,15 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     const tryouts = await prisma.tryout.findMany({
-      where: { category: "SKD" },
+      where: {
+        catAvailableFrom: { not: null },
+        OR: [
+          { catAvailableUntil: null },
+          { catAvailableUntil: { gt: new Date() } },
+        ],
+      },
       include: { questions: { select: { id: true, subtest: true } } },
-      orderBy: { createdAt: "desc" },
+      orderBy: { catAvailableFrom: "asc" },
     });
     return NextResponse.json({ tryouts });
   } catch {

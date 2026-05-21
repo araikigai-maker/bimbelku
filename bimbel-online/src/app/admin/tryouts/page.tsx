@@ -25,7 +25,9 @@ export default function AdminTryoutsPage() {
     fetch("/api/admin/tryouts")
       .then((res) => res.json())
       .then((data) => {
-        setTryouts(data.tryouts || []);
+        // Only show regular tryouts (catAvailableFrom = null means it's NOT a CAT simulation)
+        const regular = (data.tryouts || []).filter((t: any) => !t.catAvailableFrom);
+        setTryouts(regular);
         setLoading(false);
       })
       .catch(() => setLoading(false));

@@ -18,6 +18,12 @@ interface CatTryout {
   };
 }
 
+// Active = catAvailableUntil is null OR catAvailableUntil is in the future
+const isSimulationActive = (t: CatTryout): boolean => {
+  if (!t.catAvailableUntil) return true;
+  return new Date(t.catAvailableUntil) > new Date();
+};
+
 export default function AdminCatSimulationPage() {
   const [tryouts, setTryouts] = useState<CatTryout[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,8 +32,9 @@ export default function AdminCatSimulationPage() {
     fetch("/api/admin/tryouts")
       .then((res) => res.json())
       .then((data) => {
-        const cat = (data.tryouts || []).filter((t: any) => t.catAvailableFrom);
-        setTryouts(cat);
+        const all = data.tryouts || [];
+        // Only proper CAT simulations: catAvailableFrom is set
+        setTryouts(all.filter((t: any) => !!t.catAvailableFrom));
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -38,6 +45,21 @@ export default function AdminCatSimulationPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Yakin ingin menghapus simulasi ini? Semua data sesi dan jawaban akan ikut terhapus.")) return;
     await fetch(`/api/admin/tryouts/${id}`, { method: "DELETE" });
+    fetchTryouts();
+  };
+
+  const handleToggleActive = async (id: string, active: boolean) => {
+    // To DEACTIVATE: set catAvailableUntil to past date
+    // To ACTIVATE: set catAvailableUntil to far future
+    const newUntil = active
+      ? "1970-01-01" // deactivate
+      : new Date(Date.now() + 5 * 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10); // activate for 5 years
+
+    await fetch(`/api/admin/tryouts/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ catAvailableUntil: newUntil }),
+    });
     fetchTryouts();
   };
 
@@ -67,34 +89,52 @@ export default function AdminCatSimulationPage() {
               <th className="text-left p-4 font-semibold">Soal</th>
               <th className="text-left p-4 font-semibold">Tersedia</th>
               <th className="text-left p-4 font-semibold">Sampai</th>
+              <th className="text-left p-4 font-semibold">Status</th>
               <th className="text-right p-4 font-semibold">Aksi</th>
             </tr>
           </thead>
           <tbody>
-            {tryouts.map((t) => (
-              <tr key={t.id} className="border-t hover:bg-gray-50">
-                <td className="p-4">
-                  <div className="font-medium">{t.title}</div>
-                  <div className="text-sm text-gray-600">{t.slug}</div>
-                </td>
-                <td className="p-4">{t.duration} menit</td>
-                <td className="p-4">{t.catPassingGradePoints || "-"}</td>
-                <td className="p-4">{t._count.questions}</td>
-                <td className="p-4">{formatDate(t.catAvailableFrom)}</td>
-                <td className="p-4">{formatDate(t.catAvailableUntil)}</td>
-                <td className="p-4 text-right">
-                  <Link href={`/admin/cat-simulation/${t.id}`} className="text-blue-600 hover:underline mr-3">
-                    Edit
-                  </Link>
-                  <Link href={`/admin/tryouts/${t.id}/questions`} className="text-blue-600 hover:underline mr-3">
-                    Kelola Soal
-                  </Link>
-                  <button onClick={() => handleDelete(t.id)} className="text-red-600 hover:underline">
-                    Hapus
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {tryouts.map((t) => {
+              const active = isSimulationActive(t);
+              return (
+                <tr key={t.id} className="border-t hover:bg-gray-50">
+                  <td className="p-4">
+                    <div className="font-medium">{t.title}</div>
+                    <div className="text-sm text-gray-600">{t.slug}</div>
+                  </td>
+                  <td className="p-4">{t.duration} menit</td>
+                  <td className="p-4">{t.catPassingGradePoints || "-"}</td>
+                  <td className="p-4">{t._count.questions}</td>
+                  <td className="p-4">{formatDate(t.catAvailableFrom)}</td>
+                  <td className="p-4">{formatDate(t.catAvailableUntil)}</td>
+                  <td className="p-4">
+                    {/* Toggle Active/Inactive */}
+                    <button
+                      onClick={() => handleToggleActive(t.id, active)}
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                        active
+                          ? "bg-green-100 text-green-700 hover:bg-green-200"
+                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      }`}
+                      title={active ? "Klik untuk nonaktifkan" : "Klik untuk aktifkan"}
+                    >
+                      {active ? "🟢 Aktif" : "⚫ Nonaktif"}
+                    </button>
+                  </td>
+                  <td className="p-4 text-right">
+                    <Link href={`/admin/cat-simulation/${t.id}`} className="text-blue-600 hover:underline mr-3">
+                      Edit
+                    </Link>
+                    <Link href={`/admin/tryouts/${t.id}/questions`} className="text-blue-600 hover:underline mr-3">
+                      Kelola Soal
+                    </Link>
+                    <button onClick={() => handleDelete(t.id)} className="text-red-600 hover:underline">
+                      Hapus
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         {tryouts.length === 0 && (

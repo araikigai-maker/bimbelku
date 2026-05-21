@@ -12,16 +12,22 @@ export default function Navbar() {
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
-    if (stored) setUser(JSON.parse(stored));
+    setUser(stored ? JSON.parse(stored) : null);
   }, [pathname]);
 
   useEffect(() => {
     const handleUserUpdate = () => {
       const stored = localStorage.getItem("user");
-      if (stored) setUser(JSON.parse(stored));
+      setUser(stored ? JSON.parse(stored) : null);
     };
+    // Listen for custom event (same tab)
     window.addEventListener("user-updated", handleUserUpdate);
-    return () => window.removeEventListener("user-updated", handleUserUpdate);
+    // Listen for native storage event (cross-tab)
+    window.addEventListener("storage", handleUserUpdate);
+    return () => {
+      window.removeEventListener("user-updated", handleUserUpdate);
+      window.removeEventListener("storage", handleUserUpdate);
+    };
   }, []);
 
   return (
@@ -49,14 +55,9 @@ export default function Navbar() {
             {user ? (
               <>
                 {user.role === "ADMIN" && (
-                  <>
-                    <Link href="/admin/overview" className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition">
-                      Admin
-                    </Link>
-                    <Link href="/admin/overview" className="text-red-600 hover:text-red-800 font-medium text-sm">
-                      Admin Panel
-                    </Link>
-                  </>
+                  <Link href="/admin/overview" className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition">
+                    Admin Panel
+                  </Link>
                 )}
                 {user.role === "INSTRUCTOR" && (
                   <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">

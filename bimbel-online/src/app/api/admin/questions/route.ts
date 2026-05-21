@@ -39,3 +39,39 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const tryoutId = searchParams.get("tryoutId");
+    const subtest = searchParams.get("subtest");
+
+    if (!tryoutId) {
+      return NextResponse.json({ error: "tryoutId harus disertakan" }, { status: 400 });
+    }
+
+    const whereClause: any = { tryoutId };
+    if (subtest && subtest !== "all") {
+      whereClause.subtest = subtest;
+    }
+
+    // Delete questions matching criteria
+    const deleted = await prisma.question.deleteMany({
+      where: whereClause,
+    });
+
+    // Sync questionCount
+    const remainingCount = await prisma.question.count({
+      where: { tryoutId },
+    });
+    
+    await prisma.tryout.update({
+      where: { id: tryoutId },
+      data: { questionCount: remainingCount },
+    });
+
+    return NextResponse.json({ success: true, deleted: deleted.count });
+  } catch (err: any) {
+    return NextResponse.json({ error: `Terjadi kesalahan: ${err.message}` }, { status: 500 });
+  }
+}

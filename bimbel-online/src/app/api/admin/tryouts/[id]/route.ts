@@ -23,19 +23,18 @@ export async function PUT(
 ) {
   try {
     const data = await req.json();
-    const updateData: any = {
-      title: data.title,
-      slug: data.slug,
-      description: data.description,
-      category: data.category,
-      duration: parseInt(data.duration),
-      price: parseInt(data.price),
-      image: data.image,
-      passingGrade: parseInt(data.passingGrade) || 0,
-      pgTwk: parseInt(data.pgTwk) || 65,
-      pgTiu: parseInt(data.pgTiu) || 80,
-      pgTkp: parseInt(data.pgTkp) || 166,
-    };
+    const updateData: any = {};
+
+    // Only include fields that are explicitly provided
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.slug !== undefined) updateData.slug = data.slug;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.category !== undefined) updateData.category = data.category;
+    if (data.duration !== undefined) updateData.duration = parseInt(data.duration);
+    if (data.price !== undefined) updateData.price = parseInt(data.price);
+    if (data.image !== undefined) updateData.image = data.image;
+    if (data.passingGrade !== undefined) updateData.passingGrade = parseInt(data.passingGrade) || 0;
+    if (data.isActive !== undefined) updateData.isActive = Boolean(data.isActive);
     if (data.catPassingGradePoints !== undefined) {
       updateData.catPassingGradePoints = parseInt(data.catPassingGradePoints) || 0;
     }
@@ -45,6 +44,7 @@ export async function PUT(
     if (data.catAvailableUntil !== undefined) {
       updateData.catAvailableUntil = data.catAvailableUntil ? new Date(data.catAvailableUntil) : null;
     }
+
     const tryout = await prisma.tryout.update({
       where: { id: params.id },
       data: updateData,

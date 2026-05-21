@@ -50,6 +50,7 @@ export default function AdminLayout({
             <button
               onClick={() => {
                 localStorage.removeItem("user");
+                window.dispatchEvent(new Event("user-updated"));
                 router.push("/");
               }}
               className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition text-sm"

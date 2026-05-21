@@ -38,10 +38,24 @@ export default function EditCatSimulationPage({
       .then((data) => {
         if (data.tryout) {
           const t = data.tryout;
+          // Parse subtest PG config from description suffix
+          const desc = t.description || "";
+          const catPgMatch = desc.match(/\|\|CATPG:(\{.*?\})/);
+          let pgTwk = "65", pgTiu = "80", pgTkp = "166";
+          if (catPgMatch) {
+            try {
+              const cfg = JSON.parse(catPgMatch[1]);
+              pgTwk = (cfg.pgTwk || 65).toString();
+              pgTiu = (cfg.pgTiu || 80).toString();
+              pgTkp = (cfg.pgTkp || 166).toString();
+            } catch {}
+          }
+          const cleanDesc = desc.replace(/\|\|CATPG:\{.*?\}/, '').trim();
+
           setForm({
             title: t.title,
             slug: t.slug,
-            description: t.description,
+            description: cleanDesc,
             category: t.category,
             duration: t.duration.toString(),
             price: t.price.toString(),
@@ -54,9 +68,9 @@ export default function EditCatSimulationPage({
             catAvailableUntil: t.catAvailableUntil
               ? new Date(t.catAvailableUntil).toISOString().slice(0, 10)
               : "",
-            pgTwk: (t.pgTwk ?? 65).toString(),
-            pgTiu: (t.pgTiu ?? 80).toString(),
-            pgTkp: (t.pgTkp ?? 166).toString(),
+            pgTwk,
+            pgTiu,
+            pgTkp,
           });
           const qs = t.questions || [];
           setQuestionCount(t._count?.questions || qs.length || 0);
@@ -85,20 +99,25 @@ export default function EditCatSimulationPage({
     e.preventDefault();
     setSaving(true);
     try {
+      // Encode subtest PG config into description as a suffix
+      const pgConfig = `||CATPG:{"pgTwk":${parseInt(form.pgTwk)||65},"pgTiu":${parseInt(form.pgTiu)||80},"pgTkp":${parseInt(form.pgTkp)||166}}`;
+      const descWithConfig = form.description.replace(/\|\|CATPG:\{.*?\}/, '') + pgConfig;
+
       await fetch(`/api/admin/tryouts/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
+          title: form.title,
+          slug: form.slug,
+          description: descWithConfig,
+          category: form.category,
           duration: parseInt(form.duration),
           price: parseInt(form.price),
           passingGrade: parseInt(form.passingGrade),
+          image: form.image,
           catPassingGradePoints: parseInt(form.catPassingGradePoints),
           catAvailableFrom: form.catAvailableFrom || null,
           catAvailableUntil: form.catAvailableUntil || null,
-          pgTwk: parseInt(form.pgTwk) || 65,
-          pgTiu: parseInt(form.pgTiu) || 80,
-          pgTkp: parseInt(form.pgTkp) || 166,
         }),
       });
       router.push("/admin/cat-simulation");

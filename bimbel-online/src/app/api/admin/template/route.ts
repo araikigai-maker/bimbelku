@@ -5,7 +5,7 @@ export async function GET() {
   const wb = XLSX.utils.book_new();
 
   const headers = [
-    ["Pertanyaan", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "Opsi E", "Jawaban", "Pembahasan", "Tipe", "Poin A", "Poin B", "Poin C", "Poin D", "Poin E"],
+    ["Pertanyaan", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "Opsi E", "Jawaban", "Pembahasan", "Tipe", "Subtest", "Poin A", "Poin B", "Poin C", "Poin D", "Poin E"],
     [
       "Apa ibu kota Indonesia?",
       "Jakarta",
@@ -16,6 +16,7 @@ export async function GET() {
       "A",
       "Jakarta adalah ibu kota Indonesia",
       "Regular",
+      "TWK",
       "",
       "",
       "",
@@ -32,6 +33,7 @@ export async function GET() {
       "B",
       "Soekarno adalah presiden pertama RI",
       "Regular",
+      "TWK",
       "",
       "",
       "",
@@ -52,6 +54,7 @@ export async function GET() {
     { wch: 10 },
     { wch: 50 },
     { wch: 12 },
+    { wch: 15 }, // Subtest
     { wch: 10 },
     { wch: 10 },
     { wch: 10 },

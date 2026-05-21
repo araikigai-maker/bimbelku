@@ -6,6 +6,9 @@ import Link from "next/link";
 
 export default function NewCatSimulationPage() {
   const router = useRouter();
+  const today = new Date().toISOString().slice(0, 10);
+  const nextYear = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
   const [form, setForm] = useState({
     title: "Simulasi CAT SKD CPNS 2026",
     slug: "",
@@ -16,8 +19,8 @@ export default function NewCatSimulationPage() {
     passingGrade: "0",
     image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=500",
     catPassingGradePoints: "285",
-    catAvailableFrom: "",
-    catAvailableUntil: "",
+    catAvailableFrom: today,
+    catAvailableUntil: nextYear,
     pgTwk: "65",
     pgTiu: "80",
     pgTkp: "166",
@@ -42,20 +45,25 @@ export default function NewCatSimulationPage() {
     setError("");
 
     try {
+      // Encode subtest PG config into description as a suffix
+      const pgConfig = `||CATPG:{"pgTwk":${parseInt(form.pgTwk)||65},"pgTiu":${parseInt(form.pgTiu)||80},"pgTkp":${parseInt(form.pgTkp)||166}}`;
+      const descWithConfig = form.description.replace(/\|\|CATPG:.*$/, '') + pgConfig;
+
       const res = await fetch("/api/admin/tryouts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
+          title: form.title,
+          slug: form.slug,
+          description: descWithConfig,
+          category: form.category,
           duration: parseInt(form.duration),
           price: parseInt(form.price),
           passingGrade: parseInt(form.passingGrade),
+          image: form.image,
           catPassingGradePoints: parseInt(form.catPassingGradePoints),
-          catAvailableFrom: form.catAvailableFrom || null,
-          catAvailableUntil: form.catAvailableUntil || null,
-          pgTwk: parseInt(form.pgTwk),
-          pgTiu: parseInt(form.pgTiu),
-          pgTkp: parseInt(form.pgTkp),
+          catAvailableFrom: form.catAvailableFrom ? new Date(form.catAvailableFrom) : new Date(),
+          catAvailableUntil: form.catAvailableUntil ? new Date(form.catAvailableUntil) : null,
         }),
       });
 

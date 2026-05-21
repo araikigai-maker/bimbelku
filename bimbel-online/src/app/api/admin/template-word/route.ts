@@ -15,7 +15,7 @@ import {
 export async function GET() {
   const headerTexts = [
     "No", "Pertanyaan", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "Opsi E",
-    "Jawaban", "Pembahasan", "Tipe", "Poin A", "Poin B", "Poin C", "Poin D", "Poin E"
+    "Jawaban", "Pembahasan", "Tipe", "Subtest", "Poin A", "Poin B", "Poin C", "Poin D", "Poin E"
   ];
 
   const headerRow = new TableRow({
@@ -48,7 +48,7 @@ export async function GET() {
     new TableRow({
       children: headerTexts.map((h) =>
         new TableCell({
-          children: [new Paragraph({ children: [new TextRun({ text: h === "Tipe" ? "Regular/TKP" : h === "Poin A" || h === "Poin B" || h === "Poin C" || h === "Poin D" || h === "Poin E" ? "1-5" : "", size: 18 })] })],
+          children: [new Paragraph({ children: [new TextRun({ text: h === "Tipe" ? "Regular/TKP" : h === "Subtest" ? "TWK/TIU/TKP" : h === "Poin A" || h === "Poin B" || h === "Poin C" || h === "Poin D" || h === "Poin E" ? "1-5" : "", size: 18 })] })],
         })
       ),
     });
@@ -93,8 +93,8 @@ export async function GET() {
             width: { size: 100, type: WidthType.PERCENTAGE },
             rows: [
               headerRow,
-              sampleRow(["1", "Apa ibu kota Indonesia?", "Jakarta", "Bandung", "Surabaya", "Medan", "", "A", "Jakarta adalah ibu kota NKRI", "Regular", "", "", "", "", ""]),
-              sampleRow(["2", "Anda sedang mengerjakan proyek tim...", "Mengerjakan sendiri", "Membagi ulang pekerjaan", "Melapor ke atasan", "Meminta rekan lain", "Menunggu", "B", "Membagi tugas adalah terbaik", "TKP", "3", "5", "4", "2", "1"]),
+              sampleRow(["1", "Apa ibu kota Indonesia?", "Jakarta", "Bandung", "Surabaya", "Medan", "", "A", "Jakarta adalah ibu kota NKRI", "Regular", "TWK", "", "", "", "", ""]),
+              sampleRow(["2", "Anda sedang mengerjakan proyek tim...", "Mengerjakan sendiri", "Membagi ulang pekerjaan", "Melapor ke atasan", "Meminta rekan lain", "Menunggu", "B", "Membagi tugas adalah terbaik", "TKP", "TKP", "3", "5", "4", "2", "1"]),
               emptyRow(),
               emptyRow(),
             ],
@@ -108,9 +108,10 @@ export async function GET() {
           new Paragraph({ children: [new TextRun({ text: "3. Kolom Opsi A, B, C, D wajib diisi. Opsi E opsional", size: 22 })] }),
           new Paragraph({ children: [new TextRun({ text: "4. Kolom Jawaban diisi huruf: A, B, C, D, atau E", size: 22 })] }),
           new Paragraph({ children: [new TextRun({ text: "5. Kolom Tipe: isi 'Regular' untuk soal biasa, 'TKP' untuk soal TKP", size: 22 })] }),
-          new Paragraph({ children: [new TextRun({ text: "6. Kolom Poin A-E: diisi angka 1-5 untuk soal TKP (kosongkan untuk Regular)", size: 22 })] }),
-          new Paragraph({ children: [new TextRun({ text: "7. Kolom Pembahasan opsional, bisa dikosongkan", size: 22 })] }),
-          new Paragraph({ children: [new TextRun({ text: "8. Hapus baris contoh sebelum mengisi soal sendiri", size: 22 })] }),
+          new Paragraph({ children: [new TextRun({ text: "6. Kolom Subtest: isi 'TWK', 'TIU', atau 'TKP' sesuai jenis soal", size: 22 })] }),
+          new Paragraph({ children: [new TextRun({ text: "7. Kolom Poin A-E: diisi angka 1-5 untuk soal TKP (kosongkan untuk Regular)", size: 22 })] }),
+          new Paragraph({ children: [new TextRun({ text: "8. Kolom Pembahasan opsional, bisa dikosongkan", size: 22 })] }),
+          new Paragraph({ children: [new TextRun({ text: "9. Hapus baris contoh sebelum mengisi soal sendiri", size: 22 })] }),
         ],
       },
     ],
