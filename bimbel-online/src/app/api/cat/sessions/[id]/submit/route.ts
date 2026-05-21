@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
+const SUBTEST_PASSING_GRADES: Record<string, { points: number; label: string }> = {
+  TWK: { points: 65, label: "Tes Wawasan Kebangsaan" },
+  TIU: { points: 80, label: "Tes Intelegensia Umum" },
+  TKP: { points: 166, label: "Tes Karakteristik Pribadi" },
+};
+
 async function calculateResult(sessionId: string, tryoutId: string, userId: string) {
   const questions = await prisma.question.findMany({
     where: { tryoutId },
@@ -66,13 +72,19 @@ async function calculateResult(sessionId: string, tryoutId: string, userId: stri
     unanswered: questions.length - answered,
     earnedPoints,
     maxPoints,
-    subtestScores: Object.entries(subtestScores).map(([name, data]) => ({
-      name,
-      earned: data.earned,
-      max: data.max,
-      score: Math.round((data.earned / data.max) * 100),
-      count: data.count,
-    })),
+    subtestScores: Object.entries(subtestScores).map(([name, data]) => {
+      const pg = SUBTEST_PASSING_GRADES[name];
+      return {
+        name,
+        label: pg?.label || name,
+        earned: data.earned,
+        max: data.max,
+        score: Math.round((data.earned / data.max) * 100),
+        count: data.count,
+        passingGradePoints: pg?.points || 0,
+        passed: data.earned >= (pg?.points || 0),
+      };
+    }),
   };
 }
 

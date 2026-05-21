@@ -52,6 +52,9 @@ export default function AdminCatSimulationPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Simulasi CAT CPNS</h2>
+        <Link href="/admin/cat-simulation/new" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-1">
+          <span className="text-lg leading-none">+</span> Tambah Simulasi
+        </Link>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">

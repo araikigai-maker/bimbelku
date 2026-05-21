@@ -34,6 +34,9 @@ export async function POST(request: Request) {
         price: parseInt(data.price) || 0,
         image: data.image || "",
         passingGrade: parseInt(data.passingGrade) || 0,
+        catPassingGradePoints: parseInt(data.catPassingGradePoints) || 0,
+        catAvailableFrom: data.catAvailableFrom ? new Date(data.catAvailableFrom) : null,
+        catAvailableUntil: data.catAvailableUntil ? new Date(data.catAvailableUntil) : null,
       },
     });
     return NextResponse.json({ tryout }, { status: 201 });
