@@ -36,8 +36,16 @@ export default function DashboardPage() {
       router.push("/login");
       return;
     }
-    setUser(JSON.parse(storedUser));
-    setLoading(false);
+    const parsedUser = JSON.parse(storedUser);
+    setUser(parsedUser);
+    
+    fetch(`/api/tryout-results?userId=${parsedUser.id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.results) setResults(data.results);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, [router]);
 
   const handleLogout = () => {

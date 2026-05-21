@@ -84,9 +84,9 @@ export default function AdminUsersPage() {
         <h2 className="text-2xl font-bold">Kelola Pengguna</h2>
         <button
           onClick={() => setShowCreate(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium"
         >
-          + Tambah User
+          + Pengguna
         </button>
       </div>
 
