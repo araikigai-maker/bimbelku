@@ -1,13 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import mammoth from "mammoth";
-import fs from "fs";
-import path from "path";
-
-// Simple uuid for unique filenames
-function simpleId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-}
 
 export async function POST(
   req: NextRequest,
@@ -23,30 +16,15 @@ export async function POST(
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const uploadsDir = path.join(process.cwd(), "public", "uploads", "questions");
-
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-
-    const savedImages: Record<string, string> = {};
 
     const result = await mammoth.convertToHtml(
       { buffer },
       {
         convertImage: mammoth.images.imgElement(async (image) => {
-          const ext = image.contentType?.split("/")[1] || "png";
-          const filename = `qimg_${simpleId()}.${ext}`;
-          const filepath = path.join(uploadsDir, filename);
-
           const imageBuffer = await image.read();
-          fs.writeFileSync(filepath, imageBuffer);
-
-          const imgUrl = `/uploads/questions/${filename}`;
-
-          savedImages[filename] = imgUrl;
-
-          return { src: imgUrl };
+          const base64 = imageBuffer.toString("base64");
+          const dataUri = `data:${image.contentType || "image/png"};base64,${base64}`;
+          return { src: dataUri };
         }),
       }
     );
@@ -172,14 +150,12 @@ export async function POST(
       data: { questionCount: { increment: success } },
     });
 
-    const imageCount = Object.keys(savedImages).length;
-
     return NextResponse.json({
       success,
       errors,
-      images: imageCount,
+      images: 0,
       warnings: warnings.slice(0, 5),
-      message: `Berhasil import ${success} soal${imageCount > 0 ? ` (${imageCount} gambar)` : ""}${errors.length > 0 ? `, ${errors.length} gagal` : ""}`,
+      message: `Berhasil import ${success} soal${errors.length > 0 ? `, ${errors.length} gagal` : ""}`,
     });
   } catch (err: any) {
     return NextResponse.json(
