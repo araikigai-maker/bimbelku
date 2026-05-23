@@ -1,9 +1,8 @@
 import { prisma } from "@/lib/db";
 import { compare } from "bcryptjs";
 import { NextResponse } from "next/server";
+import { createSession } from "@/lib/session";
 
-// Generic error message - prevents user enumeration attacks
-// (hacker cannot tell if email exists or password is wrong)
 const AUTH_ERROR = "Email atau password salah";
 
 export async function POST(request: Request) {
@@ -18,7 +17,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -29,8 +27,6 @@ export async function POST(request: Request) {
 
     const user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
 
-    // Use same error for both "not found" and "wrong password"
-    // This prevents attackers from knowing which emails are registered
     if (!user) {
       return NextResponse.json({ error: AUTH_ERROR }, { status: 401 });
     }
@@ -41,7 +37,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: AUTH_ERROR }, { status: 401 });
     }
 
+    // Create session in HTTP-Only cookie
+    await createSession({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+    });
+
     return NextResponse.json({
+      success: true,
       user: {
         id: user.id,
         name: user.name,

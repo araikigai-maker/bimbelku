@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
+import { createSession } from "@/lib/session";
 
 export async function POST(request: Request) {
   try {
@@ -33,9 +34,17 @@ export async function POST(request: Request) {
       );
     }
 
-    if (password.length < 6) {
+    // Stricter password validation
+    if (password.length < 8) {
       return NextResponse.json(
-        { error: "Password minimal 6 karakter" },
+        { error: "Password minimal 8 karakter" },
+        { status: 400 }
+      );
+    }
+    
+    if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+      return NextResponse.json(
+        { error: "Password harus mengandung huruf kapital dan angka" },
         { status: 400 }
       );
     }
@@ -59,7 +68,16 @@ export async function POST(request: Request) {
       },
     });
 
+    // Automatically log in the user by creating a session
+    await createSession({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+    });
+
     return NextResponse.json({
+      success: true,
       user: {
         id: user.id,
         name: user.name,

@@ -96,7 +96,7 @@ export default function CatExamPage({
   }, [sessionId, router]);
 
   useEffect(() => {
-    if (sessionStatus !== "active") return;
+    if (sessionStatus !== "active" || loading) return;
     const interval = setInterval(() => {
       setTimer((prev) => {
         if (prev <= 1) { handleTimeout(); return 0; }
@@ -104,7 +104,7 @@ export default function CatExamPage({
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [sessionStatus, handleTimeout]);
+  }, [sessionStatus, handleTimeout, loading]);
 
   useEffect(() => {
     if (!sessionId || sessionStatus !== "active") return;

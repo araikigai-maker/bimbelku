@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import { getSession } from "@/lib/session";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,15 +25,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getSession();
+
   return (
     <html lang="id" className={inter.variable}>
       <body className="min-h-screen flex flex-col font-sans antialiased">
-        <Navbar />
+        <Navbar user={session} />
         <main className="flex-1">{children}</main>
         <Footer />
         <FloatingWhatsApp />

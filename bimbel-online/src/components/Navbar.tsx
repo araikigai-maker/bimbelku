@@ -5,29 +5,10 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { navItems } from "@/lib/constants";
 
-export default function Navbar() {
+export default function Navbar({ user }: { user: any }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-
-  useEffect(() => {
-    const stored = localStorage.getItem("user");
-    setUser(stored ? JSON.parse(stored) : null);
-  }, [pathname]);
-
-  useEffect(() => {
-    const handleUserUpdate = () => {
-      const stored = localStorage.getItem("user");
-      setUser(stored ? JSON.parse(stored) : null);
-    };
-    window.addEventListener("user-updated", handleUserUpdate);
-    window.addEventListener("storage", handleUserUpdate);
-    return () => {
-      window.removeEventListener("user-updated", handleUserUpdate);
-      window.removeEventListener("storage", handleUserUpdate);
-    };
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
