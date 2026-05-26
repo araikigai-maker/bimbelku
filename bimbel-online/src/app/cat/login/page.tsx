@@ -38,7 +38,7 @@ export default function CatLoginPage() {
       }
 
       localStorage.setItem("user", JSON.stringify(data.user));
-      router.push("/cat");
+      window.location.href = "/cat";
     } catch {
       setError("Terjadi kesalahan");
     } finally {

@@ -11,7 +11,17 @@ export async function GET(
       include: {
         modules: {
           include: {
-            lessons: true,
+            lessons: {
+              orderBy: { order: "asc" },
+              select: {
+                id: true,
+                title: true,
+                content: true,
+                videoUrl: true,
+                moduleId: true,
+                order: true,
+              },
+            },
           },
           orderBy: { order: "asc" },
         },

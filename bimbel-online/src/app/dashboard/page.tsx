@@ -1,68 +1,25 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/db";
+import { LogoutButton } from "./LogoutButton";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
-
-interface TryoutResult {
-  id: string;
-  score: number;
-  correct: number;
-  wrong: number;
-  answered: number;
-  createdAt: string;
-  tryout: {
-    title: string;
-    slug: string;
-  };
-}
-
-export default function DashboardPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [results, setResults] = useState<TryoutResult[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) {
-      router.push("/login");
-      return;
-    }
-    const parsedUser = JSON.parse(storedUser);
-    setUser(parsedUser);
-    
-    fetch(`/api/tryout-results?userId=${parsedUser.id}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.results) setResults(data.results);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [router]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    window.dispatchEvent(new Event("user-updated"));
-    router.push("/");
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+export default async function DashboardPage() {
+  const session = await getSession();
+  
+  if (!session) {
+    redirect("/login");
   }
 
-  if (!user) return null;
+  const results = await prisma.tryoutResult.findMany({
+    where: { userId: session.userId },
+    include: {
+      tryout: {
+        select: { title: true, slug: true },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
   const avgScore = results.length > 0
     ? Math.round(results.reduce((acc, r) => acc + r.score, 0) / results.length)
@@ -74,14 +31,9 @@ export default function DashboardPage() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-gray-600">Selamat datang, {user.name}!</p>
+            <p className="text-gray-600">Selamat datang, {session.name}!</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
-          >
-            Keluar
-          </button>
+          <LogoutButton />
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">

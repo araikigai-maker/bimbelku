@@ -3,7 +3,7 @@ import { NextResponse, NextRequest } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { moduleId, title, content } = await request.json();
+    const { moduleId, title, content, videoUrl } = await request.json();
     
     if (!moduleId || !title) {
       return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
 
     const maxOrder = await prisma.lesson.count({ where: { moduleId } });
     const lesson = await prisma.lesson.create({
-      data: { moduleId, title, content, order: maxOrder + 1 },
+      data: { moduleId, title, content, videoUrl: videoUrl || null, order: maxOrder + 1 },
     });
     return NextResponse.json({ lesson }, { status: 201 });
   } catch (err: any) {
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { id, title, content } = await request.json();
+    const { id, title, content, videoUrl } = await request.json();
     
     if (!id || !title) {
       return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
@@ -29,7 +29,7 @@ export async function PUT(request: Request) {
 
     const lesson = await prisma.lesson.update({
       where: { id },
-      data: { title, content },
+      data: { title, content, videoUrl: videoUrl || null },
     });
     return NextResponse.json({ lesson });
   } catch (err: any) {

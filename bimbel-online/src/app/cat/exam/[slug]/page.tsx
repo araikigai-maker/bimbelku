@@ -37,6 +37,8 @@ export default function CatExamPage({
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [sessionStatus, setSessionStatus] = useState("active");
+  const [warnings, setWarnings] = useState(0);
+  const [showWarning, setShowWarning] = useState(false);
   const answerCount = Object.values(answers).filter((a) => a !== null).length;
   const syncRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -107,6 +109,20 @@ export default function CatExamPage({
   }, [sessionStatus, handleTimeout, loading]);
 
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && sessionStatus === "active") {
+        setWarnings((prev) => {
+          const newCount = prev + 1;
+          setShowWarning(true);
+          return newCount;
+        });
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [sessionStatus]);
+
+  useEffect(() => {
     if (!sessionId || sessionStatus !== "active") return;
     const heartbeat = setInterval(async () => {
       try {
@@ -149,8 +165,8 @@ export default function CatExamPage({
     saveAnswer(questionId, answers[questionId] || null, newVal);
   };
 
-  const handleSubmit = async () => {
-    if (!confirm("Apakah Anda yakin ingin mengakhiri ujian?")) return;
+  const handleSubmit = async (force = false) => {
+    if (!force && !confirm("Apakah Anda yakin ingin mengakhiri ujian?")) return;
     setSubmitting(true);
     try {
       const res = await fetch(`/api/cat/sessions/${sessionId}/submit`, { method: "POST" });
@@ -191,7 +207,7 @@ export default function CatExamPage({
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       {/* Top Bar */}
-      <div className="bg-white shadow-sm border-b px-4 py-2 flex items-center justify-between">
+      <div className="sticky top-16 z-40 bg-white shadow-sm border-b px-4 py-2 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
           <span className="text-lg font-bold text-blue-600">CAT CPNS 2026</span>
           {user && <span className="text-sm text-gray-500">| {user.name}</span>}
@@ -209,7 +225,7 @@ export default function CatExamPage({
         </div>
       </div>
 
-      <div className="flex-1 flex">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         {/* Main Question Area */}
         <div className="flex-1 p-4 overflow-y-auto">
           <div className="bg-white rounded-xl shadow-sm p-6 max-w-3xl">
@@ -221,7 +237,7 @@ export default function CatExamPage({
               <span className="text-xs text-gray-500">{currentIdx + 1}/{questions.length}</span>
             </div>
 
-            <h2 className="text-lg font-medium mb-6 leading-relaxed" dangerouslySetInnerHTML={{ __html: question.question }} />
+            <div className="text-base md:text-lg text-gray-800 mb-6 leading-relaxed" dangerouslySetInnerHTML={{ __html: question.question }} />
 
             <div className="space-y-2.5">
               {[
@@ -247,7 +263,10 @@ export default function CatExamPage({
                     }`}>
                       {opt.key}
                     </span>
-                    <span className={isSelected ? "font-medium" : ""}>{opt.val}</span>
+                    <span 
+                      className={isSelected ? "font-medium" : ""}
+                      dangerouslySetInnerHTML={{ __html: opt.val || "" }}
+                    />
                   </button>
                 );
               })}
@@ -287,7 +306,7 @@ export default function CatExamPage({
                   </button>
                 ) : (
                   <button
-                    onClick={handleSubmit}
+                    onClick={() => handleSubmit(false)}
                     disabled={submitting}
                     className="px-5 py-2 rounded-lg bg-green-600 text-white text-sm font-bold hover:bg-green-700 disabled:opacity-50"
                   >
@@ -300,7 +319,7 @@ export default function CatExamPage({
         </div>
 
         {/* Right Navigation Panel */}
-        <div className="w-72 bg-white border-l shadow-sm p-4 overflow-y-auto">
+        <div className="w-full md:w-72 bg-white border-t md:border-t-0 md:border-l shadow-sm p-4 overflow-y-auto shrink-0">
           <h3 className="font-bold text-sm mb-3">Navigasi Soal</h3>
           <div className="grid grid-cols-5 gap-1.5">
             {questions.map((q, i) => {
@@ -372,7 +391,7 @@ export default function CatExamPage({
           </div>
 
           <button
-            onClick={handleSubmit}
+            onClick={() => handleSubmit(false)}
             disabled={submitting}
             className="w-full mt-5 px-3 py-2.5 rounded-lg bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition disabled:opacity-50"
           >
@@ -380,6 +399,34 @@ export default function CatExamPage({
           </button>
         </div>
       </div>
+
+      {/* Anti-cheat Warning Modal */}
+      {showWarning && (
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600 text-4xl">
+              ⚠️
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Peringatan Kecurangan!</h2>
+            <p className="text-gray-600 mb-6 leading-relaxed">
+              Sistem mendeteksi Anda keluar dari halaman ujian. Ini adalah peringatan ke-<span className="font-bold text-red-600">{warnings}</span> dari maksimal 3 kali.
+              {warnings >= 3 ? " Ujian Anda akan otomatis diselesaikan." : " Jika melebihi 3 kali, ujian Anda akan dihentikan otomatis."}
+            </p>
+            <button
+              onClick={() => {
+                if (warnings >= 3) {
+                   handleSubmit(true);
+                } else {
+                   setShowWarning(false);
+                }
+              }}
+              className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition shadow-md"
+            >
+              {warnings >= 3 ? "Selesaikan Ujian" : "Saya Mengerti, Lanjutkan"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
